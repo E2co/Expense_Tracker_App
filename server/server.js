@@ -142,7 +142,7 @@ const BuildclientPath = path.join(__dirname, '../client/dist');
 app.use(express.static(BuildclientPath));
 
 // Sends all non-API requests to the React app
-app.get('/*', (req, res) => {
+app.get('*', (req, res) => {
   res.sendFile(path.join(BuildclientPath, 'index.html'), (err) => {
     if (err) {
       res.status(500).send(err);
