@@ -5,11 +5,13 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server",
-    "dev": "nodemon server"
+    "start": "node server.js",
+    "dev": "nodemon server",
+    "build:client": "cd ../client && npm install && npm run build",
+    "heroku-postbuild": "npm run build:client"
   },
   "keywords": [],
-  "author": "",
+  "author": "Damario Escoffery",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
@@ -20,5 +22,8 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
+  },
+  "engines": {
+    "node" : "18.x"
   }
 }

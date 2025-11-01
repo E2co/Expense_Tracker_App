@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const path = require('path');
 require('dotenv').config(); // Loads .env variables
 
 const Expense = require('./expense.model');
@@ -23,8 +24,6 @@ const uri = process.env.DATABASE_URL;
 // Check if the URI is loaded
 if (!uri) {
   console.error('Error: DATABASE_URL not found in .env file.');
-  console.log('Please make sure your server/.env file contains:');
-  console.log('DATABASE_URL=your_mongodb_connection_string');
   process.exit(1); // Stop the server
 }
 
@@ -64,7 +63,7 @@ app.post('/api/expenses', async (req, res) => {
     });
 
     const savedExpense = await newExpense.save();
-    res.status(201).json(savedExpense); // Send back the new item with its _id
+    res.status(201).json(savedExpense);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -116,13 +115,13 @@ app.get('/api/budget', async (req, res) => {
       budget = new Budget({ amount: 0, identifier: 'main_budget' });
       await budget.save();
     }
-    res.json(budget); // Corrected typo: was budegt
+    res.json(budget);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
-// SET (Update) the budget
+// SET the budget
 app.post('/api/budget', async (req, res) => {
   try {
     const { amount } = req.body;
@@ -137,6 +136,20 @@ app.post('/api/budget', async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
+
+// --- Deployment Setup ---
+const BuildclientPath = path.join(__dirname, '../client/dist');
+app.use(express.static(BuildclientPath));
+
+// Sends all non-API requests to the React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(BuildclientPath, 'index.html'), (err) => {
+    if (err) {
+      res.status(500).send(err);
+    }
+  });
+});
+// -----------------------------
 
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);

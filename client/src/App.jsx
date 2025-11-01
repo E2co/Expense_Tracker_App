@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react"
 import axios from "axios" // Import axios
-import "./App.css" // Corrected path
-import ExpenseForm from "./components/expense-form" // Corrected path
-import ExpenseList from "./components/expense-list" // Corrected path
-import ExpenseSummary from "./components/expense-summary" // Corrected path
-import MonthlyBudget from "./components/monthly-budget" // Corrected path
+import "./App.css"
+import ExpenseForm from "./components/expense-form"
+import ExpenseList from "./components/expense-list"
+import ExpenseSummary from "./components/expense-summary"
+import MonthlyBudget from "./components/monthly-budget" 
 
-const API_BASE_URL = "http://localhost:8080/api"
+// const API_BASE_URL = "http://localhost:8080/api"
+const API_BASE_URL = "/api"
 
 function App() {
   const [expenses, setExpenses] = useState([])
@@ -27,6 +28,7 @@ function App() {
         setError(null)
     } catch (err) {
         console.error("Error fetching expenses:", err)
+        setError("Failed to load expenses. Please ensure the server is running.")
     } finally {
         setIsLoading(false)
     }
@@ -40,8 +42,10 @@ function App() {
   // 2. Add Expense via API
   const addExpense = async (expense) => {
     try {
-        const response = await axios.post(`${API_BASE_URL}/expenses`, expense)
-        // Use the returned MongoDB document (which includes the _id)
+        const response = await axios.post(`${API_BASE_URL}/expenses`, {
+          ...expense,
+          date: new Date().toISOString()
+        })
         setExpenses([response.data, ...expenses])
         setError(null)
     } catch (err) {
@@ -73,7 +77,6 @@ function App() {
     try {
         // Use the MongoDB _id for deletion
         await axios.delete(`${API_BASE_URL}/expenses/${id}`)
-        // Remove from local state
         setExpenses(expenses.filter((expense) => expense._id !== id))
         setError(null)
     } catch (err) {

@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-    import axios from "axios" // Import axios for API calls
+import axios from "axios" // Import axios for API calls
 
-    // Define the API URL for the budget endpoint
-    const API_URL = "http://localhost:8080/api/budget"
+// Define the API URL for the budget endpoint
+const API_URL = "/api/budget"
 
 function MonthlyBudget({ expenses }) {
   const [budget, setBudget] = useState(0)
@@ -18,34 +18,21 @@ function MonthlyBudget({ expenses }) {
   // --- API Fetch Logic ---
   const fetchBudget = async () => {
     setLoading(true)
+    setAlert(null)
     try {
       const response = await axios.get(API_URL)
       const amount = response.data.amount || 0
       setBudget(amount)
-      setBudgetInput(amount.toString()) // Keep input synced
+      setBudgetInput(amount > 0 ? amount.toString() : "") // Keep input synced
       setError(null)
     } catch (err) {
       console.error("Error fetching budget:", err)
+      setAlert({ type: "danger", message: 'Failed to load budegt from server.' })
       setBudget(0)
     } finally {
       setLoading(false)
     }
   }
-
-  // Load budget from API on mount
-  useEffect(() => {
-    fetchBudget()
-  }, [])
-
-  // --- Calculations (Remain the same) ---
-  const currentMonthExpenses = expenses.filter((expense) => {
-    const expenseDate = new Date(expense.date)
-    return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear
-  })
-
-  const spent = currentMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0)
-  const remaining = budget - spent
-  const percentage = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0
 
   // --- API Set Logic ---
   const handleSetBudget = async () => {
@@ -67,6 +54,21 @@ function MonthlyBudget({ expenses }) {
       }
     }
   }
+
+  // Load budget from API on mount
+  useEffect(() => {
+    fetchBudget()
+  }, [])
+
+  // --- Calculations ---
+  const currentMonthExpenses = expenses.filter((expense) => {
+    const expenseDate = new Date(expense.date)
+    return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear
+  })
+
+  const spent = currentMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0)
+  const remaining = budget - spent
+  const percentage = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0
 
   const getProgressClass = () => {
     if (percentage >= 100) return "danger"
