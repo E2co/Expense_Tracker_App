@@ -11,6 +11,7 @@ function MonthlyBudget({ expenses }) {
   const [budgetInput, setBudgetInput] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [apiAlert, setApiAlert] = useState(null)
 
   const currentMonth = new Date().getMonth()
   const currentYear = new Date().getFullYear()
@@ -18,7 +19,7 @@ function MonthlyBudget({ expenses }) {
   // --- API Fetch Logic ---
   const fetchBudget = async () => {
     setLoading(true)
-    setAlert(null)
+    setApiAlert(null)
     try {
       const response = await axios.get(API_URL)
       const amount = response.data.amount || 0
@@ -27,7 +28,7 @@ function MonthlyBudget({ expenses }) {
       setError(null)
     } catch (err) {
       console.error("Error fetching budget:", err)
-      setAlert({ type: "danger", message: 'Failed to load budegt from server.' })
+      setApiAlert({ type: "danger", message: 'Failed to load budget from server.' })
       setBudget(0)
     } finally {
       setLoading(false)
