@@ -1,0 +1,17 @@
+{
+  "name": "expense-tracker-monorepo",
+  "version": "1.0.0",
+  "description": "Expense Tracker monorepo root",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "build": "cd client && npm install && npm run build",
+    "heroku-postbuild": "npm install --prefix server && npm run build"
+  },
+  "keywords": [],
+  "author": "Damario Escoffery",
+  "license": "ISC",
+  "engines": {
+    "node": "18.x"
+  }
+}

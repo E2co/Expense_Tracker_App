@@ -1,14 +1,12 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend server for the Expense Tracker App",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "nodemon server",
-    "build:client": "cd ../client && npm install && npm run build",
-    "heroku-postbuild": "npm run build:client"
+    "dev": "nodemon server"
   },
   "keywords": [],
   "author": "Damario Escoffery",
