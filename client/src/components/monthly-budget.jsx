@@ -34,7 +34,13 @@ function MonthlyBudget({ expenses }) {
     }
   }
 
-  // --- API Set Logic ---
+  // Load budget from API on mount
+  useEffect(() => {
+    fetchBudget()
+  }, [])
+
+  // --- Calculations ---
+    // --- API Set Logic ---
   const handleSetBudget = async () => {
     const newBudget = Number.parseFloat(budgetInput)
     if (newBudget >= 0) {
@@ -54,13 +60,7 @@ function MonthlyBudget({ expenses }) {
       }
     }
   }
-
-  // Load budget from API on mount
-  useEffect(() => {
-    fetchBudget()
-  }, [])
-
-  // --- Calculations ---
+  
   const currentMonthExpenses = expenses.filter((expense) => {
     const expenseDate = new Date(expense.date)
     return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear
