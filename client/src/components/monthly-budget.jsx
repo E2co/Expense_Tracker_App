@@ -40,7 +40,16 @@ function MonthlyBudget({ expenses }) {
   }, [])
 
   // --- Calculations ---
-    // --- API Set Logic ---
+  const currentMonthExpenses = expenses.filter((expense) => {
+    const expenseDate = new Date(expense.date)
+    return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear
+  })
+
+  const spent = currentMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0)
+  const remaining = budget - spent
+  const percentage = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0
+
+  // --- API Set Logic ---
   const handleSetBudget = async () => {
     const newBudget = Number.parseFloat(budgetInput)
     if (newBudget >= 0) {
@@ -60,15 +69,6 @@ function MonthlyBudget({ expenses }) {
       }
     }
   }
-  
-  const currentMonthExpenses = expenses.filter((expense) => {
-    const expenseDate = new Date(expense.date)
-    return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear
-  })
-
-  const spent = currentMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0)
-  const remaining = budget - spent
-  const percentage = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0
 
   const getProgressClass = () => {
     if (percentage >= 100) return "danger"
