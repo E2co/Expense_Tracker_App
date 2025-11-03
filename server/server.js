@@ -23,14 +23,22 @@ if (!uri) {
   process.exit(1); // Stop the server
 }
 
-mongoose.connect(uri);
+mongoose.connect(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+});
+
 const connection = mongoose.connection;
 connection.once('open', () => {
   console.log('MongoDB database connection established successfully');
 });
 
+
 connection.on('error', (err) => {
   console.error('MongoDB connection error:', err);
+  console.error(`MongoDB connection URI used: ${uri.replace(/(\/\/[^:]*):([^@]*@)/, '$1:***@')}`);
   process.exit();
 });
 
@@ -68,19 +76,20 @@ app.post('/api/expenses', async (req, res) => {
 // UPDATE an existing expense
 app.put('/api/expenses/:id', async (req, res) => {
   try {
-    const expense = await Expense.findById(req.params.id);
+    const expense = await Expense.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          description: req.body.description,
+          amount: req.body.amount,
+          category: req.body.category,
+        },
+      },
+      { new: true }
+    );
     if (!expense) {
-      return res.status(4404).json({ message: 'Expense not found' });
+      return res.status(404).json({ message: 'Expense not found' });
     }
-
-    const { description, amount, category } = req.body;
-
-    expense.description = description;
-    expense.amount = Number(amount);
-    expense.category = category;
-    // Note: We are not updating the date here, but you could add it.
-
-    const updatedExpense = await expense.save();
     res.json(updatedExpense);
   } catch (err) {
     res.status(400).json({ message: err.message });
