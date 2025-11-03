@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import axios from "axios" // Import axios for API calls
 
 // Define the API URL for the budget endpoint
-const API_URL = "/api/budget"
+const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/budget`
 
 function MonthlyBudget({ expenses }) {
   const [budget, setBudget] = useState(0)

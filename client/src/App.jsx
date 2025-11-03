@@ -9,7 +9,7 @@ import ExpenseSummary from "./components/expense-summary"
 import MonthlyBudget from "./components/monthly-budget" 
 
 // const API_BASE_URL = "http://localhost:8080/api"
-const API_BASE_URL = "/api"
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 function App() {
   const [expenses, setExpenses] = useState([])
@@ -23,7 +23,7 @@ function App() {
   const fetchExpenses = async () => {
     setIsLoading(true)
     try {
-        const response = await axios.get(`${API_BASE_URL}/expenses`)
+        const response = await axios.get(`${API_BASE_URL}/api/expenses`)
         setExpenses(response.data)
         setError(null)
     } catch (err) {
@@ -42,7 +42,7 @@ function App() {
   // 2. Add Expense via API
   const addExpense = async (expense) => {
     try {
-        const response = await axios.post(`${API_BASE_URL}/expenses`, {
+        const response = await axios.post(`${API_BASE_URL}/api/expenses`, {
           ...expense,
           date: new Date().toISOString()
         })
@@ -60,7 +60,7 @@ function App() {
         // Use the MongoDB '_id' for the update endpoint
         const idToUpdate = updatedExpense._id; 
         
-        const response = await axios.put(`${API_BASE_URL}/expenses/${idToUpdate}`, updatedExpense)
+        const response = await axios.put(`${API_BASE_URL}/api/expenses/${idToUpdate}`, updatedExpense)
         
         // Update local state by replacing the old document with the new one
         setExpenses(expenses.map((expense) => (expense._id === idToUpdate ? response.data : expense)))
@@ -76,7 +76,7 @@ function App() {
   const deleteExpense = async (id) => {
     try {
         // Use the MongoDB _id for deletion
-        await axios.delete(`${API_BASE_URL}/expenses/${id}`)
+        await axios.delete(`${API_BASE_URL}/api/expenses/${id}`)
         setExpenses(expenses.filter((expense) => expense._id !== id))
         setError(null)
     } catch (err) {
