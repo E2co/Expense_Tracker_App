@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import axios from "axios" // Import axios for API calls
 
 // Define the API URL for the budget endpoint
@@ -88,13 +88,12 @@ function MonthlyBudget({ expenses }) {
   }
 
   useEffect(() => {
-    if (budget > 0 && remaining < 0 && !alert) {
-      setAlert({ type: "danger", message: "You are over your budget for the month!" })
-    } else if (budget > 0 && remaining < budget * 0.25 && remaining >= 0 && !alert) {
-      setAlert({ type: "warning", message: "You're getting close to your budget limit!" })
-    } else if (budget > 0 && remaining >= budget * 0.25 && alert?.type !== "success") {
-        // Clear dynamic alerts if conditions are met
-        setAlert(null)
+    if (budget > 0 && remaining < 0 && !apiAlert) {
+      setApiAlert({ type: "danger", message: "You are over your budget for the month!" })
+    } else if (budget > 0 && remaining < budget * 0.25 && remaining >= 0 && !apiAlert) {
+      setApiAlert({ type: "warning", message: "You're getting close to your budget limit!" })
+    } else if (budget > 0 && remaining >= budget * 0.25 && apiAlert?.type !== "success") {
+      setApiAlert(null)
     }
   }, [remaining, budget, percentage])
 
@@ -145,7 +144,7 @@ function MonthlyBudget({ expenses }) {
             </span>
           </div>
 
-          {alert && <div className={`budget-alert ${alert.type}`}>{alert.message}</div>}
+          {apiAlert && <div className={`budget-alert ${apiAlert.type}`}>{apiAlert.message}</div>}
         </>
       )}
 
