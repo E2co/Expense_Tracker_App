@@ -11,11 +11,7 @@ const app = express();
 const port = process.env.PORT || 8080;
 
 // --- Middleware ---
-const corsOptions = {
-  origin: 'http://localhost:5173', // Allow your React app to make requests
-  optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.json()); // To parse JSON bodies (like { "amount": 100 })
 
 // --- Database Connection ---
