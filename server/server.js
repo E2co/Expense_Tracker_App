@@ -1,8 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const path = require('path');
-require('dotenv').config(); // Loads .env variables
+require('dotenv').config();
 
 const Expense = require('./expense.model');
 const Budget = require('./budget.model');
@@ -11,16 +10,21 @@ const app = express();
 const port = process.env.PORT || 8080;
 
 // --- Middleware ---
-app.use(cors());
-app.use(express.json()); // To parse JSON bodies (like { "amount": 100 })
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    process.env.FRONTEND_URL, // We'll set this in Vercel
+  ].filter(Boolean),
+  credentials: true
+}));
+app.use(express.json());
 
 // --- Database Connection ---
 const uri = process.env.DATABASE_URL;
 
-// Check if the URI is loaded
 if (!uri) {
   console.error('Error: DATABASE_URL not found in .env file.');
-  process.exit(1); // Stop the server
+  process.exit(1);
 }
 
 mongoose.connect(uri, {
@@ -35,37 +39,31 @@ connection.once('open', () => {
   console.log('MongoDB database connection established successfully');
 });
 
-
 connection.on('error', (err) => {
   console.error('MongoDB connection error:', err);
-  console.error(`MongoDB connection URI used: ${uri.replace(/(\/\/[^:]*):([^@]*@)/, '$1:***@')}`);
   process.exit();
 });
 
 // --- Routes ---
 
-// GET all expenses
 app.get('/api/expenses', async (req, res) => {
   try {
-    const expenses = await Expense.find().sort({ date: -1 }); // Get newest first
+    const expenses = await Expense.find().sort({ date: -1 });
     res.json(expenses);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
-// ADD a new expense
 app.post('/api/expenses', async (req, res) => {
   try {
     const { description, amount, category, date } = req.body;
-
     const newExpense = new Expense({
       description,
       amount: Number(amount),
       category,
-      date: date ? new Date(date) : new Date() // Use provided date or default to now
+      date: date ? new Date(date) : new Date()
     });
-
     const savedExpense = await newExpense.save();
     res.status(201).json(savedExpense);
   } catch (err) {
@@ -73,7 +71,6 @@ app.post('/api/expenses', async (req, res) => {
   }
 });
 
-// UPDATE an existing expense
 app.put('/api/expenses/:id', async (req, res) => {
   try {
     const expense = await Expense.findByIdAndUpdate(
@@ -90,13 +87,12 @@ app.put('/api/expenses/:id', async (req, res) => {
     if (!expense) {
       return res.status(404).json({ message: 'Expense not found' });
     }
-    res.json(updatedExpense);
+    res.json(expense);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
-// DELETE an expense
 app.delete('/api/expenses/:id', async (req, res) => {
   try {
     const deletedExpense = await Expense.findByIdAndDelete(req.params.id);
@@ -109,14 +105,10 @@ app.delete('/api/expenses/:id', async (req, res) => {
   }
 });
 
-// --- Budget Routes ---
-
-// GET the current budget
 app.get('/api/budget', async (req, res) => {
   try {
     let budget = await Budget.findOne({ identifier: 'main_budget' });
     if (!budget) {
-      // If no budget is set, create one with 0
       budget = new Budget({ amount: 0, identifier: 'main_budget' });
       await budget.save();
     }
@@ -126,15 +118,13 @@ app.get('/api/budget', async (req, res) => {
   }
 });
 
-// SET the budget
 app.post('/api/budget', async (req, res) => {
   try {
     const { amount } = req.body;
-
     const updatedBudget = await Budget.findOneAndUpdate(
       { identifier: 'main_budget' },
       { amount: Number(amount) },
-      { new: true, upsert: true } // upsert: true creates it if it doesn't exist
+      { new: true, upsert: true }
     );
     res.json(updatedBudget);
   } catch (err) {
@@ -142,21 +132,17 @@ app.post('/api/budget', async (req, res) => {
   }
 });
 
-// --- Deployment Setup ---
-const BuildclientPath = path.join(__dirname, '../client/dist');
-app.use(express.static(BuildclientPath));
+// Health check
+app.get('/', (req, res) => {
+  res.json({ message: 'Expense Tracker API is running!' });
+});
 
-// Sends all non-API requests to the React app
-app.get('*', (req, res) => {
-  res.sendFile(path.join(BuildclientPath, 'index.html'), (err) => {
-    if (err) {
-      res.status(500).send(err);
-    }
+// Export for Vercel serverless
+module.exports = app;
+
+// For local development
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Server is listening on port ${port}`);
   });
-});
-// -----------------------------
-
-app.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
-});
-
+}
