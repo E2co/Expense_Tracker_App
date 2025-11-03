@@ -16,6 +16,20 @@ function MonthlyBudget({ expenses }) {
   const currentMonth = new Date().getMonth()
   const currentYear = new Date().getFullYear()
 
+  // --- Calculations ---
+  const { spent, remaining, percentage, currentMonthExpenses } = useMemo(() => {
+    const currentMonthExpenses = expenses.filter((expense) => {
+      const expenseDate = new Date(expense.date)
+      return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear
+    })
+
+    const spent = currentMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0)
+    const remaining = budget - spent
+    const percentage = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0
+
+    return { spent, remaining, percentage, currentMonthExpenses }
+  }, [expenses, budget, currentMonth, currentYear])
+
   // --- API Fetch Logic ---
   const fetchBudget = async () => {
     setLoading(true)
@@ -40,34 +54,30 @@ function MonthlyBudget({ expenses }) {
     fetchBudget()
   }, [])
 
-  // --- Calculations ---
-  const currentMonthExpenses = expenses.filter((expense) => {
-    const expenseDate = new Date(expense.date)
-    return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear
-  })
-
-  const spent = currentMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0)
-  const remaining = budget - spent
-  const percentage = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0
-
   // --- API Set Logic ---
   const handleSetBudget = async () => {
     const newBudget = Number.parseFloat(budgetInput)
     if (newBudget >= 0) {
+      setLoading(true)
+      setAlert(null)
       try {
-        setLoading(true)
-        // POST request to the backend to update/set the budget
+        // Send the new budget amount to the API
         const response = await axios.post(API_URL, { amount: newBudget })
-
-        // Update local state with the saved value
         setBudget(response.data.amount)
-        setBudgetInput(response.data.amount.toString())
-        setError(null)
+        setBudgetInput(newBudget > 0 ? newBudget.toString() : "")
+        setAlert({ type: "success", message: 'Budget saved successfully!' })
       } catch (err) {
         console.error("Error setting budget:", err)
+        setAlert({ type: "danger", message: 'Failed to save budget. Check server status.' })
       } finally {
         setLoading(false)
+        // Clear success message after a few seconds
+        if (newBudget > 0) {
+           setTimeout(() => setAlert(null), 3000)
+        }
       }
+    } else {
+      setAlert({ type: "danger", message: "Please enter a non-negative number for the budget." })
     }
   }
 
@@ -77,15 +87,16 @@ function MonthlyBudget({ expenses }) {
     return "success"
   }
 
-  const alert = (() => {
-    if (remaining < 0) {
-      return { type: "danger", message: `You've exceeded your budget by $${Math.abs(remaining).toFixed(2)}!` }
+  useEffect(() => {
+    if (budget > 0 && remaining < 0 && !alert) {
+      setAlert({ type: "danger", message: "You are over your budget for the month!" })
+    } else if (budget > 0 && remaining < budget * 0.25 && remaining >= 0 && !alert) {
+      setAlert({ type: "warning", message: "You're getting close to your budget limit!" })
+    } else if (budget > 0 && remaining >= budget * 0.25 && alert?.type !== "success") {
+        // Clear dynamic alerts if conditions are met
+        setAlert(null)
     }
-    if (remaining > 0 && percentage >= 75) {
-      return { type: "warning", message: `You have spent ${percentage.toFixed(0)}% of your budget. Be careful!` }
-    }
-    return null
-  })()
+  }, [remaining, budget, percentage])
 
   if (loading) {
       return <div style={{ textAlign: "center", padding: "20px", color: "#6b7280" }}>Loading Budget...</div>
