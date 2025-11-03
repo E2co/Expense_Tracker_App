@@ -13,7 +13,7 @@ const port = process.env.PORT || 8080;
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    process.env.FRONTEND_URL, // We'll set this in Vercel
+    process.env.FRONTEND_URL,
   ].filter(Boolean),
   credentials: true
 }));
@@ -143,6 +143,6 @@ module.exports = app;
 // For local development
 if (require.main === module) {
   app.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
+    console.log(`Server is listening on port ${port} for local developmment`);
   });
 }
