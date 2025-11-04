@@ -28,7 +28,7 @@ function App() {
         setError(null)
     } catch (err) {
         console.error("Error fetching expenses:", err)
-        setError("Failed to load expenses. Please ensure the server is running.")
+        //setError("Failed to load expenses. Please ensure the server is running.")
     } finally {
         setIsLoading(false)
     }
@@ -50,7 +50,7 @@ function App() {
         setError(null)
     } catch (err) {
         console.error("Error adding expense:", err)
-        setError("Failed to add expense.")
+        //setError("Failed to add expense.")
     }
   }
 
