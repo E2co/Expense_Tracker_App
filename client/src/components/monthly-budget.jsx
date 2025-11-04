@@ -57,28 +57,30 @@ function MonthlyBudget({ expenses }) {
   // --- API Set Logic ---
   const handleSetBudget = async () => {
     const newBudget = Number.parseFloat(budgetInput)
-    if (newBudget >= 0) {
+    if (isNaN(newBudget) || newBudget < 0) {
+      setAlert({ type: "danger", message: "Please enter a non-negative number for the budget." })
+      return
+    }
+
       setLoading(true)
-      setAlert(null)
+      setApiAlert(null)
+
       try {
         // Send the new budget amount to the API
         const response = await axios.post(API_URL, { amount: newBudget })
         setBudget(response.data.amount)
         setBudgetInput(newBudget > 0 ? newBudget.toString() : "")
-        setAlert({ type: "success", message: 'Budget saved successfully!' })
+        setApiAlert({ type: "success", message: 'Budget saved successfully!' })
+
+        setTimeout(() => {
+          setApiAlert(null)
+        }, 3000)
       } catch (err) {
         console.error("Error setting budget:", err)
-        setAlert({ type: "danger", message: 'Failed to save budget. Check server status.' })
+        setApiAlert({ type: "danger", message: 'Failed to save budget. Check server status.' })
       } finally {
         setLoading(false)
-        // Clear success message after a few seconds
-        if (newBudget > 0) {
-           setTimeout(() => setAlert(null), 3000)
-        }
       }
-    } else {
-      setAlert({ type: "danger", message: "Please enter a non-negative number for the budget." })
-    }
   }
 
   const getProgressClass = () => {
@@ -97,7 +99,7 @@ function MonthlyBudget({ expenses }) {
     }
   }, [remaining, budget, percentage])
 
-  if (loading) {
+  if (loading && !budget) {
       return <div style={{ textAlign: "center", padding: "20px", color: "#6b7280" }}>Loading Budget...</div>
   }
   
